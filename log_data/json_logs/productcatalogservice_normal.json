@@ -1,0 +1,5 @@
+2026-06-03T02:41:30.071557276Z {"message":"Tracing disabled.","severity":"info","timestamp":"2026-06-03T02:41:29.964267753Z"}
+2026-06-03T02:41:30.071619526Z {"message":"Profiling disabled.","severity":"info","timestamp":"2026-06-03T02:41:30.071296457Z"}
+2026-06-03T02:41:30.073789468Z {"message":"starting grpc server at :3550","severity":"info","timestamp":"2026-06-03T02:41:30.073526179Z"}
+2026-06-03T02:41:30.163745970Z {"message":"loading catalog from local products.json file...","severity":"info","timestamp":"2026-06-03T02:41:30.163509503Z"}
+2026-06-03T02:41:30.167161810Z {"message":"successfully parsed product catalog json","severity":"info","timestamp":"2026-06-03T02:41:30.166889097Z"}

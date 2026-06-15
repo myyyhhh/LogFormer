@@ -1,0 +1,349 @@
+如果你**就是要做 LogFormer**，那其实也完全可以，而且从课程设计角度来说还有一个优势：
+
+> 你可以把老师要求的 Prometheus + Grafana 当作监控系统使用，把 LogFormer 当作异常检测算法复现。
+
+这两件事并不冲突。
+
+---
+
+# 你需要修改目标
+
+不要说：
+
+> 用 Prometheus 指标训练 LogFormer
+
+因为 LogFormer不是干这个的。
+
+而应该说：
+
+> 利用 Chaos Mesh 构造故障场景，通过 Prometheus+Grafana 监控系统观察系统状态，同时采集微服务日志，使用 LogFormer 进行日志异常检测。
+
+这样逻辑就通顺了。
+
+---
+
+# 你的实验架构应该变成
+
+```text
+Online Boutique
+        │
+        ▼
+   Chaos Mesh
+        │
+        ▼
+故障注入
+(PodKill/Delay/Loss)
+        │
+ ┌──────┴──────┐
+ ▼             ▼
+Prometheus    Logs
+Grafana        │
+               ▼
+         LogFormer
+               ▼
+        Anomaly Score
+```
+
+其中：
+
+Prometheus负责：
+
+* CPU
+* Memory
+* Latency
+
+用于验证故障是否真正发生。
+
+LogFormer负责：
+
+* 检测日志异常。
+
+---
+
+# 你最需要解决的问题
+
+## 问题1：如何采集大量日志
+
+单纯：
+
+```bash
+kubectl logs
+```
+
+不够。
+
+建议安装 Loki。
+
+架构：
+
+```text
+Pod
+ ↓
+Promtail
+ ↓
+Loki
+ ↓
+Grafana
+```
+
+原因：
+
+Online Boutique有十几个服务：
+
+```text
+frontend
+checkoutservice
+cartservice
+paymentservice
+emailservice
+shippingservice
+...
+```
+
+故障发生时：
+
+```text
+frontend timeout
+↓
+checkout failed
+↓
+payment retry
+```
+
+日志会分散在多个Pod。
+
+Loki会帮你统一收集。
+
+---
+
+# 问题2：如何打标签
+
+论文数据集都有标签。
+
+你自己的系统没有。
+
+所以需要自己生成标签。
+
+例如：
+
+## 正常样本
+
+10:00~10:30
+
+```text
+label=0
+```
+
+---
+
+## Pod Kill
+
+10:31~10:35
+
+```text
+label=1
+```
+
+---
+
+## Network Delay
+
+10:36~10:40
+
+```text
+label=1
+```
+
+---
+
+## CPU Stress
+
+10:41~10:45
+
+```text
+label=1
+```
+
+---
+
+# 问题3：如何得到LogFormer输入
+
+LogFormer不是直接吃原始日志。
+
+论文流程：
+
+```text
+Raw Log
+ ↓
+Drain
+ ↓
+Template
+ ↓
+Sequence
+ ↓
+LogFormer
+```
+
+例如：
+
+原始日志：
+
+```text
+User 123 login success
+User 456 login success
+User 789 login success
+```
+
+Drain：
+
+```text
+User <*> login success
+```
+
+模板ID：
+
+```text
+E1
+```
+
+最终：
+
+```text
+E1 E1 E1 E1 E2 E3 E1 ...
+```
+
+送入Transformer。
+
+---
+
+# 最推荐的故障类型
+
+因为你已经部署了 Chaos Mesh。
+
+我建议至少做四类：
+
+### 实验1
+
+```text
+Normal
+```
+
+---
+
+### 实验2
+
+```text
+PodKill
+```
+
+例如：
+
+```yaml
+action: pod-kill
+```
+
+---
+
+### 实验3
+
+```yaml
+action: delay
+```
+
+100ms
+
+500ms
+
+1000ms
+
+---
+
+### 实验4
+
+```yaml
+action: loss
+```
+
+10%
+
+30%
+
+50%
+
+---
+
+### 实验5
+
+```yaml
+action: stress-cpu
+```
+
+---
+
+# 最终报告结构
+
+你完全可以写成：
+
+### 实验环境
+
+* Minikube
+* Online Boutique
+* Chaos Mesh
+* Prometheus
+* Grafana
+* Loki
+
+---
+
+### 数据采集
+
+* 正常日志
+* PodKill日志
+* Delay日志
+* Loss日志
+* CPU Stress日志
+
+---
+
+### 数据预处理
+
+* Drain日志解析
+* Template提取
+* 序列构造
+
+---
+
+### 模型复现
+
+* LogFormer Encoder
+* Log-Attention
+* Adapter Tuning
+
+---
+
+### 结果评估
+
+指标：
+
+```text
+Precision
+Recall
+F1
+```
+
+与论文保持一致。
+
+---
+
+以你目前已经搭好的：
+
+* Minikube
+* Online Boutique
+* Chaos Mesh
+* Monitoring Namespace
+
+来看，真正的工作量其实不是部署，而是：
+
+**日志采集 → Drain解析 → LogFormer代码复现**。
+
+其中最关键的一步是先把 Online Boutique 的所有服务日志持续收集下来。我建议下一步就开始搭 Loki，并设计 Chaos Mesh 故障注入计划，这样才能积累足够的训练数据。

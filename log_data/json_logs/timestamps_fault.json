@@ -1,0 +1,8 @@
+{
+  "phase": "fault",
+  "start": "2026-06-03T15:03:41.852704",
+  "end": "2026-06-03T15:33:41.943131",
+  "duration_seconds": 1800.0327506065369,
+  "total_lines": 49999,
+  "total_size_bytes": 17306752
+}

@@ -1,0 +1,34 @@
+# ===== 大型数据集 =====
+BGL/BGL.log
+BGL.zip
+
+# ===== 预处理产物（可重新生成）=====
+LogFormer/preprocessed_data/
+LogFormer/parse_result/BGL.log_structured.csv
+
+# ===== 模型权重（可重新训练）=====
+LogFormer/checkpoints/
+
+# ===== 中间日志 =====
+LogFormer/log_data/BGL.log
+LogFormer/log_data/OnlineBoutique.log
+LogFormer/log_data/BGL.log_structured.csv
+
+# ===== 重复/备份数据 =====
+.log_data/
+log_data_normal/
+
+# ===== 缓存 & 编译 =====
+__pycache__/
+*.pyc
+LogFormer/__pycache__/
+LogFormer/data/BGL/
+
+# ===== IDE & 配置 =====
+.claude/
+
+# ===== Prometheus 中间处理产物 =====
+OnlineBoutique_data/processed_seq_T10/
+
+# ===== 压缩包 =====
+*.zip
